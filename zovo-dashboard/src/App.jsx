@@ -4,6 +4,15 @@ import './App.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
+async function fetchHealthStatus() {
+  const response = await axios.get(`${API_BASE_URL}/health`, {
+    timeout: 8000,
+    validateStatus: () => true,
+  })
+
+  return response.data
+}
+
 function App() {
   const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -14,12 +23,8 @@ function App() {
     setError('')
 
     try {
-      const response = await axios.get(`${API_BASE_URL}/health`, {
-        timeout: 8000,
-        validateStatus: () => true,
-      })
-
-      setHealth(response.data)
+      const data = await fetchHealthStatus()
+      setHealth(data)
     } catch (err) {
       setHealth(null)
       setError(err.message || 'Unable to reach backend health endpoint.')
@@ -29,8 +34,26 @@ function App() {
   }, [])
 
   useEffect(() => {
-    loadHealth()
-  }, [loadHealth])
+    let cancelled = false
+
+    fetchHealthStatus()
+      .then((data) => {
+        if (!cancelled) setHealth(data)
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setHealth(null)
+          setError(err.message || 'Unable to reach backend health endpoint.')
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const backendOk = Boolean(health?.backend?.ok)
   const supabaseOk = Boolean(health?.supabase?.ok)
