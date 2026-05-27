@@ -1,7 +1,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const dotenv = require('dotenv');
 
-dotenv.config();
+dotenv.config({ quiet: true });
 
 const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_KEY'];
 
@@ -18,7 +18,7 @@ function validateEnvironment(env = process.env) {
 
   try {
     // Throws on malformed values while allowing Supabase's hosted and local URLs.
-    new URL(env.SUPABASE_URL);
+    new URL(env.SUPABASE_URL.trim());
   } catch (error) {
     throw new Error('SUPABASE_URL must be a valid URL');
   }
@@ -27,7 +27,7 @@ function validateEnvironment(env = process.env) {
 function createSupabaseClient(env = process.env) {
   validateEnvironment(env);
 
-  return createClient(env.SUPABASE_URL, env.SUPABASE_KEY, {
+  return createClient(env.SUPABASE_URL.trim(), env.SUPABASE_KEY.trim(), {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
