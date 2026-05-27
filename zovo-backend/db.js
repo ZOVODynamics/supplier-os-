@@ -27,7 +27,7 @@ function formatError(error) {
 
 function isMissingTableError(error) {
   const code = error?.code;
-  const message = String(error?.message || '').toLowerCase();
+  const message = [error?.message, error?.details, error?.hint].filter(Boolean).join(' ').toLowerCase();
 
   return (
     code === '42P01' ||
@@ -40,10 +40,15 @@ function isMissingTableError(error) {
 }
 
 function isUnavailableError(error) {
-  const message = String(error?.message || error || '').toLowerCase();
+  const message = [error?.message, error?.details, error?.hint, error?.code, error?.name, error]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
 
   return (
     error?.name === 'AbortError' ||
+    message.includes('aborterror') ||
+    message.includes('aborted') ||
     message.includes('fetch failed') ||
     message.includes('failed to fetch') ||
     message.includes('network') ||
@@ -111,7 +116,7 @@ const supabaseHealth = {
       {
         table,
         exists: false,
-        status: 'UNKNOWN',
+        status: 'MISSING',
       },
     ]),
   ),
@@ -160,7 +165,7 @@ export async function checkTableExists(tableName) {
       const unavailable = isUnavailableError(result.error);
       const status = {
         exists: false,
-        status: missing ? 'MISSING' : 'ERROR',
+        status: 'MISSING',
         error: missing ? 'table_missing' : 'table_validation_failed',
         details: formatError(result.error),
       };
@@ -195,7 +200,7 @@ export async function checkTableExists(tableName) {
 
     const status = {
       exists: false,
-      status: 'ERROR',
+      status: 'MISSING',
       error: 'db_unavailable',
       details: formatError(error),
     };
