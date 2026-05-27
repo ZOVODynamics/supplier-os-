@@ -6,7 +6,7 @@ import { getSupabaseStatus, safeQuery, validateSupabaseHealth } from './db.js';
 import { getRevenueSummary } from './services/ledger.service.js';
 import { triggerAutoAssignSupplier } from './services/request.service.js';
 
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
