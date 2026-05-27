@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const REQUIRED_ENV = ['SUPABASE_URL', 'SUPABASE_KEY'];
+const DEFAULT_HEALTH_TIMEOUT_MS = 2500;
 
 function readRequiredEnv(name) {
   const value = process.env[name];
@@ -58,11 +59,16 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 export async function checkSupabaseConnection() {
+  const controller = new AbortController();
+  const timeoutMs = Number.parseInt(process.env.SUPABASE_HEALTH_TIMEOUT_MS ?? `${DEFAULT_HEALTH_TIMEOUT_MS}`, 10);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
     const { error } = await supabase
       .from('businesses')
       .select('id', { count: 'exact', head: true })
-      .limit(1);
+      .limit(1)
+      .abortSignal(controller.signal);
 
     return {
       connected: !error,
@@ -71,7 +77,11 @@ export async function checkSupabaseConnection() {
   } catch (error) {
     return {
       connected: false,
-      error: error.message
+      error: error.name === 'AbortError'
+        ? `Supabase health check timed out after ${timeoutMs}ms`
+        : error.message
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }

@@ -27,6 +27,7 @@ AI-powered autonomous supplier intelligence system for B2B marketplace workflows
    ```bash
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_KEY=your-supabase-service-role-or-anon-key
+   SUPABASE_HEALTH_TIMEOUT_MS=2500
    ```
 
 4. Run the SQL in `supabase/schema.sql` in the Supabase SQL editor.
