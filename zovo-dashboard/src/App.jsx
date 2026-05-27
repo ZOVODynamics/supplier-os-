@@ -43,7 +43,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    loadRequests();
+    const timer = window.setTimeout(() => {
+      loadRequests();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadRequests]);
 
   async function handleCreate(payload) {
