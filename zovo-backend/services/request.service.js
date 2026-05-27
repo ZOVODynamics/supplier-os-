@@ -84,8 +84,8 @@ export async function completeExecution(executionId) {
     }
 
     const execution = executionResult.data[0];
-    const requestId = getRequestId(execution);
-    const supplierId = getSupplierId(execution);
+    const requestId = execution.request_id;
+    const supplierId = execution.supplier_id;
 
     const requestResult = await safeQuery('requests', (db) =>
       db.from('requests').select('*').eq('id', requestId).limit(1),
