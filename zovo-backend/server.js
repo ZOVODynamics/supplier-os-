@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
-import { getSupabaseStatus } from './db.js';
+import { getSupabaseStatus, safeQuery, validateSupabaseHealth } from './db.js';
 
 dotenv.config();
 
@@ -28,12 +28,66 @@ app.get('/', (_req, res) => {
 app.get('/health', (_req, res) => {
   const supabase = getSupabaseStatus();
 
-  res.status(supabase.connected ? 200 : 503).json({
+  res.status(200).json({
     status: supabase.connected ? 'ok' : 'degraded',
     service: 'zovo-backend',
     timestamp: new Date().toISOString(),
     supabase,
   });
+});
+
+function dbResponse(res, result, successStatus = 200) {
+  if (!result.ok) {
+    return res.status(200).json({
+      error: result.error,
+      data: [],
+    });
+  }
+
+  return res.status(successStatus).json({
+    data: result.data ?? [],
+  });
+}
+
+app.get('/requests', async (_req, res) => {
+  const result = await safeQuery('requests', (db) => db.from('requests').select('*'));
+  return dbResponse(res, result);
+});
+
+app.get('/request/:id', async (req, res) => {
+  const result = await safeQuery('requests', (db) =>
+    db.from('requests').select('*').eq('id', req.params.id).limit(1),
+  );
+
+  if (!result.ok) {
+    return dbResponse(res, result);
+  }
+
+  const [request] = result.data;
+  return res.status(200).json({
+    data: request || null,
+  });
+});
+
+app.post('/request', async (req, res) => {
+  const payload = {
+    id: req.body?.id || uuidv4(),
+    ...req.body,
+  };
+
+  const result = await safeQuery('requests', (db) =>
+    db.from('requests').insert(payload).select('*'),
+  );
+
+  return dbResponse(res, result, 201);
+});
+
+app.delete('/request/:id', async (req, res) => {
+  const result = await safeQuery('requests', (db) =>
+    db.from('requests').delete().eq('id', req.params.id).select('*'),
+  );
+
+  return dbResponse(res, result);
 });
 
 app.use((req, res) => {
@@ -52,7 +106,17 @@ app.use((err, req, res, _next) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`ZOVO backend running on port ${port}`);
-  console.log(`Health check: http://localhost:${port}/health`);
-});
+async function startServer() {
+  try {
+    await validateSupabaseHealth();
+  } catch (error) {
+    console.warn(`[supabase] startup validation failed safely: ${error.message}`);
+  }
+
+  app.listen(port, () => {
+    console.log(`ZOVO Supplier AI backend running on port ${port}`);
+    console.log(`Health check: http://localhost:${port}/health`);
+  });
+}
+
+startServer();
