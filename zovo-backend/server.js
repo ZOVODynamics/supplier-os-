@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import { getSupabaseStatus, safeQuery, validateSupabaseHealth } from './db.js';
+import { triggerAutoAssignSupplier } from './services/request.service.js';
 
 dotenv.config();
 
@@ -79,7 +80,17 @@ app.post('/request', async (req, res) => {
     db.from('requests').insert(payload).select('*'),
   );
 
-  return dbResponse(res, result, 201);
+  if (!result.ok) {
+    return dbResponse(res, result, 201);
+  }
+
+  const [createdRequest = payload] = result.data;
+  triggerAutoAssignSupplier(createdRequest);
+
+  return res.status(201).json({
+    ...createdRequest,
+    ai: 'supplier assignment triggered',
+  });
 });
 
 app.delete('/request/:id', async (req, res) => {
