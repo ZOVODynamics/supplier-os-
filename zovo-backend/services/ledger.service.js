@@ -46,6 +46,15 @@ export async function createLedgerEntry(request, supplier) {
       return null;
     }
 
+    const existing = await safeQuery('ledger', (db) =>
+      db.from('ledger').select('*').eq('request_id', requestId).eq('supplier_id', supplierId).limit(1),
+    );
+
+    if (existing.ok && Array.isArray(existing.data) && existing.data.length > 0) {
+      console.log(`[ledger] existing ledger entry reused for request ${requestId}`);
+      return existing.data[0];
+    }
+
     const split = calculateSplit(totalAmount);
     const ledgerEntry = {
       request_id: requestId,

@@ -4,7 +4,9 @@ import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import { getSupabaseStatus, safeQuery, validateSupabaseHealth } from './db.js';
 import { getRevenueSummary } from './services/ledger.service.js';
-import { triggerAutoAssignSupplier } from './services/request.service.js';
+import { getOverviewMetrics } from './services/metrics.service.js';
+import { completeExecution, triggerAutoAssignSupplier } from './services/request.service.js';
+import { ensureSuppliersExist } from './services/supplier.service.js';
 
 dotenv.config({ path: ['.env.local', '.env'] });
 
@@ -56,6 +58,13 @@ app.get('/requests', async (_req, res) => {
   return dbResponse(res, result);
 });
 
+app.get('/suppliers', async (_req, res) => {
+  const suppliers = await ensureSuppliersExist();
+  return res.status(200).json({
+    data: suppliers,
+  });
+});
+
 app.get('/revenue', async (_req, res) => {
   const summary = await getRevenueSummary();
 
@@ -65,6 +74,11 @@ app.get('/revenue', async (_req, res) => {
     transactions: summary.transactions,
     ...(summary.error ? { error: summary.error } : {}),
   });
+});
+
+app.get('/metrics/overview', async (_req, res) => {
+  const metrics = await getOverviewMetrics();
+  return res.status(200).json(metrics);
 });
 
 app.get('/request/:id', async (req, res) => {
@@ -113,6 +127,24 @@ app.delete('/request/:id', async (req, res) => {
   return dbResponse(res, result);
 });
 
+app.get('/executions', async (_req, res) => {
+  const result = await safeQuery('executions', (db) => db.from('executions').select('*'));
+  return dbResponse(res, result);
+});
+
+app.post('/execution/:id/done', async (req, res) => {
+  const result = await completeExecution(req.params.id);
+
+  if (!result.ok) {
+    return res.status(200).json({
+      error: result.error,
+      data: null,
+    });
+  }
+
+  return res.status(200).json(result.data);
+});
+
 app.use((req, res) => {
   res.status(404).json({
     error: 'Not Found',
@@ -132,6 +164,7 @@ app.use((err, req, res, _next) => {
 async function startServer() {
   try {
     await validateSupabaseHealth();
+    await ensureSuppliersExist();
   } catch (error) {
     console.warn(`[supabase] startup validation failed safely: ${error.message}`);
   }

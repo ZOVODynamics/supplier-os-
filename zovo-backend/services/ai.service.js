@@ -1,4 +1,6 @@
 import { safeQuery } from '../db.js';
+import { getInsightAdjustment } from './insights.service.js';
+import { autoGenerateSupplierFromRequest, ensureSuppliersExist } from './supplier.service.js';
 
 function normalizeText(value) {
   if (Array.isArray(value)) {
@@ -12,8 +14,8 @@ function normalizeText(value) {
   return String(value || '');
 }
 
-function getTitleKeywords(title) {
-  return normalizeText(title)
+function getRequestKeywords(request) {
+  return `${normalizeText(request?.title)} ${normalizeText(request?.description)}`
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((word) => word.length >= 3);
@@ -29,17 +31,29 @@ function getSupplierId(supplier) {
 }
 
 function scoreSupplier(request, supplier) {
-  const keywords = getTitleKeywords(request?.title);
+  const keywords = getRequestKeywords(request);
   const skillsText = normalizeText(supplier?.skills).toLowerCase();
-  const hasSkillMatch = keywords.some((keyword) => skillsText.includes(keyword));
-  const trustScore = getNumeric(supplier?.trust_score);
-  const rating = getNumeric(supplier?.rating);
+  const matchedKeywords = keywords.filter((keyword) => skillsText.includes(keyword));
+  const skillScore = keywords.length ? (matchedKeywords.length / keywords.length) * 40 : 0;
+  const trustScore = Math.min(getNumeric(supplier?.trust_score), 100) * 0.3;
+  const ratingScore = Math.min(getNumeric(supplier?.rating), 5) * 6;
 
-  return (hasSkillMatch ? 40 : 0) + trustScore * 0.3 + rating * 10;
+  return {
+    score: skillScore + trustScore + ratingScore,
+    reason: {
+      matched_keywords: matchedKeywords,
+      skill_score: skillScore,
+      trust_score: trustScore,
+      rating_score: ratingScore,
+    },
+  };
 }
 
 export async function findBestSupplier(request) {
   try {
+    await ensureSuppliersExist();
+    const insightAdjustment = await getInsightAdjustment(request);
+
     const result = await safeQuery('suppliers', (db) => db.from('suppliers').select('*'));
 
     if (!result.ok) {
@@ -49,8 +63,8 @@ export async function findBestSupplier(request) {
 
     const suppliers = Array.isArray(result.data) ? result.data : [];
     if (!suppliers.length) {
-      console.warn('[ai] supplier lookup skipped: no suppliers found');
-      return null;
+      const generatedSupplier = await autoGenerateSupplierFromRequest(request);
+      return generatedSupplier ? { supplier: generatedSupplier, score: 70, reason: 'generated_supplier' } : null;
     }
 
     let bestMatch = null;
@@ -61,12 +75,24 @@ export async function findBestSupplier(request) {
         continue;
       }
 
-      const score = scoreSupplier(request, supplier);
+      const scoredSupplier = scoreSupplier(request, supplier);
 
-      if (!bestMatch || score > bestMatch.score) {
+      if (!bestMatch || scoredSupplier.score > bestMatch.score) {
         bestMatch = {
           supplier,
-          score,
+          score: scoredSupplier.score + insightAdjustment,
+          reason: scoredSupplier.reason,
+        };
+      }
+    }
+
+    if (!bestMatch || bestMatch.reason?.matched_keywords?.length === 0) {
+      const generatedSupplier = await autoGenerateSupplierFromRequest(request);
+      if (generatedSupplier) {
+        return {
+          supplier: generatedSupplier,
+          score: Math.max(bestMatch?.score || 0, 72),
+          reason: 'generated_supplier',
         };
       }
     }
