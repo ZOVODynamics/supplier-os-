@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import { getSupabaseStatus, safeQuery, validateSupabaseHealth } from './db.js';
+import { getRevenueSummary } from './services/ledger.service.js';
 import { triggerAutoAssignSupplier } from './services/request.service.js';
 
 dotenv.config();
@@ -53,6 +54,17 @@ function dbResponse(res, result, successStatus = 200) {
 app.get('/requests', async (_req, res) => {
   const result = await safeQuery('requests', (db) => db.from('requests').select('*'));
   return dbResponse(res, result);
+});
+
+app.get('/revenue', async (_req, res) => {
+  const summary = await getRevenueSummary();
+
+  return res.status(200).json({
+    total_revenue: summary.total_revenue,
+    total_volume: summary.total_volume,
+    transactions: summary.transactions,
+    ...(summary.error ? { error: summary.error } : {}),
+  });
 });
 
 app.get('/request/:id', async (req, res) => {

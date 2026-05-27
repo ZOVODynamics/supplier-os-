@@ -1,5 +1,6 @@
 import { safeQuery } from '../db.js';
 import { findBestSupplier } from './ai.service.js';
+import { createLedgerEntry } from './ledger.service.js';
 
 function getRequestId(request) {
   return request?.id || request?.request_id || null;
@@ -48,8 +49,11 @@ export async function autoAssignSupplier(request) {
       `[request] assigned supplier ${supplierId} to request ${requestId} with score ${match.score.toFixed(2)}`,
     );
 
+    const ledgerEntry = await createLedgerEntry(request, match.supplier);
+
     return {
       execution: Array.isArray(result.data) ? result.data[0] : result.data,
+      ledger: ledgerEntry,
       supplier: match.supplier,
       score: match.score,
     };
