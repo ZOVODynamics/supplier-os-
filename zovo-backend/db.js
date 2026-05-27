@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
 
-dotenv.config();
+dotenv.config({ path: ['.env.local', '.env'] });
 
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
 const QUERY_TIMEOUT_MS = Number(process.env.SUPABASE_QUERY_TIMEOUT_MS) || 5000;
 const REQUIRED_TABLES = ['requests', 'businesses', 'suppliers', 'executions', 'ledger'];
 
@@ -17,9 +17,12 @@ function formatError(error) {
     return null;
   }
 
+  const fallbackMessage =
+    typeof error === 'object' ? JSON.stringify(error) : String(error);
+
   return {
     code: error.code || error.name || 'unknown_error',
-    message: error.message || String(error),
+    message: error.message || fallbackMessage,
     details: error.details,
     hint: error.hint,
   };
