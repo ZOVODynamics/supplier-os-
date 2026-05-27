@@ -32,11 +32,17 @@ function getSupplierId(supplier) {
 
 function scoreSupplier(request, supplier) {
   const keywords = getRequestKeywords(request);
-  const skillsText = normalizeText(supplier?.skills).toLowerCase();
+  const skillsText = normalizeText([
+    supplier?.skills,
+    supplier?.category,
+    supplier?.company_name,
+    supplier?.country,
+  ]).toLowerCase();
   const matchedKeywords = keywords.filter((keyword) => skillsText.includes(keyword));
   const skillScore = keywords.length ? (matchedKeywords.length / keywords.length) * 40 : 0;
   const trustScore = Math.min(getNumeric(supplier?.trust_score), 100) * 0.3;
-  const ratingScore = Math.min(getNumeric(supplier?.rating), 5) * 6;
+  const rating = getNumeric(supplier?.rating) || Math.min(getNumeric(supplier?.trust_score) / 20, 5);
+  const ratingScore = Math.min(rating, 5) * 6;
 
   return {
     score: skillScore + trustScore + ratingScore,

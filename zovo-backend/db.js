@@ -37,13 +37,17 @@ function isMissingTableError(error) {
   const code = error?.code;
   const message = [error?.message, error?.details, error?.hint].filter(Boolean).join(' ').toLowerCase();
 
+  if (message.includes('column ') || message.includes('could not find the') && message.includes('column')) {
+    return false;
+  }
+
   return (
     code === '42P01' ||
     code === 'PGRST106' ||
     code === 'PGRST205' ||
     message.includes('does not exist') ||
     message.includes('could not find the table') ||
-    message.includes('schema cache')
+    message.includes("could not find the table")
   );
 }
 
