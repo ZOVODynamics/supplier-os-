@@ -135,6 +135,10 @@ const supabaseHealth = {
 };
 
 function setTableStatus(tableName, status) {
+  if (!REQUIRED_TABLES.includes(tableName)) {
+    return;
+  }
+
   supabaseHealth.tables[tableName] = {
     table: tableName,
     ...status,
