@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createRequest, deleteRequest, getRequests } from './api/requests.js';
 import CreateRequest from './components/CreateRequest.jsx';
 import RequestList from './components/RequestList.jsx';
+import InvestorDashboard from './pages/InvestorDashboard.jsx';
 
 function App() {
+  const [activeView, setActiveView] = useState('dashboard');
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -94,6 +96,27 @@ function App() {
 
   return (
     <main className="dashboard-shell">
+      <nav className="view-toggle" aria-label="Dashboard navigation">
+        <button
+          type="button"
+          className={activeView === 'dashboard' ? 'view-toggle__button active' : 'view-toggle__button'}
+          onClick={() => setActiveView('dashboard')}
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          className={activeView === 'investor' ? 'view-toggle__button active' : 'view-toggle__button'}
+          onClick={() => setActiveView('investor')}
+        >
+          Investor Mode
+        </button>
+      </nav>
+
+      {activeView === 'investor' ? (
+        <InvestorDashboard />
+      ) : (
+        <>
       <section className="hero-section">
         <div>
           <p className="eyebrow">ZOVO Supplier AI</p>
@@ -138,6 +161,8 @@ function App() {
           />
         </div>
       </section>
+        </>
+      )}
     </main>
   );
 }
