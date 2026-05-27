@@ -1,0 +1,259 @@
+.dashboard-shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.hero-panel,
+.health-tile,
+.workflow-panel {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow);
+}
+
+.hero-panel {
+  overflow: hidden;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.16), transparent 28%),
+    linear-gradient(135deg, #07111f 0%, #101827 55%, #172554 100%);
+  color: #dbeafe;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.brand-mark {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.topbar strong,
+.hero-copy h1,
+.workflow-panel h2,
+.health-tile h2 {
+  color: inherit;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
+  align-items: end;
+  padding: 56px 28px 32px;
+}
+
+.hero-copy {
+  max-width: 760px;
+}
+
+.hero-copy h1 {
+  margin: 18px 0;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -3px;
+}
+
+.hero-copy p,
+.workflow-steps p,
+.health-tile p,
+.status-card dd {
+  color: var(--muted);
+}
+
+.pill,
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pill {
+  display: inline-flex;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #bfdbfe;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent);
+}
+
+.status-card {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.status-card-header,
+.tile-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+}
+
+.status-card dl {
+  display: grid;
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.status-card dt {
+  margin-bottom: 4px;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.status-card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+button {
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.status-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: #f59e0b;
+  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
+}
+
+.status-dot.ok {
+  background: #22c55e;
+  box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.14);
+}
+
+.status-dot.warn {
+  background: #f59e0b;
+}
+
+.status-dot.error {
+  background: #ef4444;
+  box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.14);
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 18px 0;
+}
+
+.health-tile,
+.workflow-panel {
+  border-radius: 24px;
+  padding: 24px;
+}
+
+.health-tile h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 21px;
+}
+
+.health-tile p {
+  margin-top: 14px;
+}
+
+code {
+  display: block;
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #fecaca;
+  white-space: pre-wrap;
+}
+
+.workflow-panel {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 26px;
+}
+
+.workflow-panel h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.03;
+}
+
+.workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.workflow-steps div {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.workflow-steps span {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.workflow-steps strong {
+  display: block;
+  margin: 8px 0;
+  color: var(--text-h);
+}
+
+.workflow-steps p {
+  margin: 0;
+  font-size: 15px;
+}
+
+@media (max-width: 860px) {
+  .hero-grid,
+  .health-grid,
+  .workflow-panel,
+  .workflow-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-grid {
+    padding-top: 36px;
+  }
+}
