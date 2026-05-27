@@ -1,0 +1,30 @@
+{
+  "name": "zovo-supplier-ai-backend",
+  "version": "0.1.0",
+  "description": "AI-powered autonomous supplier intelligence system (AMIN)",
+  "main": "server.js",
+  "scripts": {
+    "check:supabase": "node -e \"(async () => { require('dotenv').config({ quiet: true }); await require('./db').testSupabaseConnection(); console.log('Supabase connected'); })().catch((error) => { console.error(error.message); process.exit(1); })\"",
+    "dev": "node --watch server.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZOVODynamics/supplier-os-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ZOVODynamics/supplier-os-/issues"
+  },
+  "homepage": "https://github.com/ZOVODynamics/supplier-os-#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
