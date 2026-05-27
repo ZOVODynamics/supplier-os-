@@ -13,7 +13,11 @@ dotenv.config({ path: ['.env.local', '.env'] });
 const app = express();
 const port = Number(process.env.PORT) || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: '*',
+  }),
+);
 app.use(express.json());
 
 app.use((req, res, next) => {
