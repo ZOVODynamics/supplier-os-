@@ -2,7 +2,7 @@ const path = require('node:path');
 const express = require('express');
 const { validateSupabaseConnection } = require('./db');
 
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 const app = express();
 const DEFAULT_PORT = 3000;

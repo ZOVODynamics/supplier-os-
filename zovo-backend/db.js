@@ -1,11 +1,12 @@
 const path = require('node:path');
 const { createClient } = require('@supabase/supabase-js');
 
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '.env'), quiet: true });
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const CONNECTION_TIMEOUT_MS = 5000;
+let normalizedSupabaseUrl = null;
 
 function getConfigurationError() {
   if (!SUPABASE_URL) {
@@ -21,6 +22,13 @@ function getConfigurationError() {
     if (!parsedUrl.protocol.startsWith('http')) {
       return 'SUPABASE_URL must be an HTTP(S) URL.';
     }
+
+    // Supabase project APIs are hosted on supabase.co; normalize common project URL typos.
+    if (parsedUrl.hostname.endsWith('.supabase.com')) {
+      parsedUrl.hostname = parsedUrl.hostname.replace(/\.supabase\.com$/, '.supabase.co');
+    }
+
+    normalizedSupabaseUrl = parsedUrl.origin;
   } catch {
     return 'SUPABASE_URL is not a valid URL.';
   }
@@ -32,6 +40,14 @@ function cleanErrorMessage(error) {
   if (error && typeof error.message === 'string') {
     if (error.name === 'AbortError' || error.name === 'TimeoutError') {
       return 'Supabase connection timed out.';
+    }
+
+    if (error.cause && error.cause.code === 'ENOTFOUND') {
+      return 'Unable to resolve Supabase host.';
+    }
+
+    if (error.cause && error.cause.code === 'ECONNREFUSED') {
+      return 'Unable to connect to Supabase.';
     }
 
     return error.message.replace(SUPABASE_KEY || '', '[redacted]');
@@ -46,7 +62,7 @@ let supabase = null;
 
 if (!configurationError) {
   try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    supabase = createClient(normalizedSupabaseUrl, SUPABASE_KEY, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
@@ -66,12 +82,12 @@ async function validateSupabaseConnection() {
     return { connected: false, error: initializationError };
   }
 
-  const restUrl = new URL('/rest/v1/', SUPABASE_URL).toString();
+  const settingsUrl = new URL('/auth/v1/settings', normalizedSupabaseUrl).toString();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), CONNECTION_TIMEOUT_MS);
 
   try {
-    const response = await fetch(restUrl, {
+    const response = await fetch(settingsUrl, {
       method: 'GET',
       headers: {
         apikey: SUPABASE_KEY,
@@ -83,7 +99,7 @@ async function validateSupabaseConnection() {
     if (!response.ok) {
       return {
         connected: false,
-        error: `Supabase health check failed with status ${response.status}.`,
+        error: `Supabase validation failed with status ${response.status}.`,
       };
     }
 
