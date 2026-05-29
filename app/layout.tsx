@@ -1,10 +1,10 @@
 export const metadata = {
   title: "ZOVO Supplier OS",
-  description: "AI-powered supplier execution platform",
+  description: "AI Supplier Engine"
 };
 
 export default function RootLayout({
-  children,
+  children
 }: {
   children: React.ReactNode;
 }) {
