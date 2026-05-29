@@ -1,30 +1,26 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export default async function middleware(request: NextRequest) {
-  const session = await auth();
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protected routes
-  const protectedRoutes = ["/dashboard"];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isProtectedRoute = pathname.startsWith("/dashboard");
+  const isAuthRoute =
+    pathname.startsWith("/login") || pathname.startsWith("/register");
 
-  // Auth routes (login, register)
-  const authRoutes = ["/login", "/register"];
-  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+  const sessionToken =
+    request.cookies.get("next-auth.session-token") ||
+    request.cookies.get("__Secure-next-auth.session-token");
 
-  // Redirect to login if accessing protected route without session
-  if (isProtectedRoute && !session) {
+  // 🔒 Block dashboard if no session cookie
+  if (isProtectedRoute && !sessionToken) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect to dashboard if accessing auth routes with session
-  if (isAuthRoute && session) {
+  // 🔁 Redirect auth pages if already logged in
+  if (isAuthRoute && sessionToken) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
