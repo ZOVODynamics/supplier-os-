@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -14,7 +14,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          String    @default("company") // company, supplier, admin
+  role          String    @default("company")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -30,13 +30,10 @@ model Account {
   type              String
   provider          String
   providerAccountId String
+
   refresh_token     String?
   access_token      String?
   expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -51,28 +48,20 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
 model Request {
   id          String   @id @default(cuid())
   title       String
   description String
   category    String
   budget      Float
-  status      String   @default("open") // open, matched, in_progress, completed, cancelled
-  priority    String   @default("medium") // low, medium, high, urgent
+  status      String   @default("open")
+  priority    String   @default("medium")
   deadline    DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   matches Match[]
 }
@@ -81,9 +70,9 @@ model Supplier {
   id          String   @id @default(cuid())
   name        String
   description String?
-  skills      String   // JSON array stored as string
-  categories  String   // JSON array stored as string
-  rating      Float    @default(0)
+  skills      Json
+  categories  Json
+  rating      Float    @default(0.0)
   totalJobs   Int      @default(0)
   location    String?
   verified    Boolean  @default(false)
@@ -91,22 +80,22 @@ model Supplier {
   updatedAt   DateTime @updatedAt
 
   userId String? @unique
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   matches Match[]
 }
 
 model Match {
   id        String   @id @default(cuid())
-  score     Float    // AI matching score 0-100
-  status    String   @default("suggested") // suggested, accepted, rejected
+  score     Float
+  status    String   @default("suggested")
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   requestId  String
   request    Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  
+
   supplierId String
   supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
