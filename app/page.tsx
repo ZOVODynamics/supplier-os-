@@ -1,3 +1,5 @@
-export default function Page() {
-  return <h1>ZOVO Supplier OS 🚀</h1>
+import { RegisterForm } from "@/components/auth/register-form";
+
+export default function RegisterPage() {
+  return <RegisterForm />;
 }
