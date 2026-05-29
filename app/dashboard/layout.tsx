@@ -1,4 +1,3 @@
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
@@ -9,15 +8,20 @@ export default async function DashboardLayout({
 }) {
   const session = await auth();
 
+  // 🔒 protection route
   if (!session) {
     redirect("/login");
   }
 
   return (
-    <div className="flex min-h-screen">
-      <DashboardSidebar />
+    <div className="min-h-screen flex">
+      {/* Sidebar placeholder (optionnel ici) */}
+      <aside className="w-64 border-r bg-background">
+        <div className="p-4 font-bold">ZOVO OS</div>
+      </aside>
 
-      <main className="flex-1 p-6 bg-background">
+      {/* Main content */}
+      <main className="flex-1 p-6 bg-muted/30">
         {children}
       </main>
     </div>
