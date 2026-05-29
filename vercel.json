@@ -1,3 +1,4 @@
 {
-  "rootDirectory": "zovo-dashboard"
+"buildCommand": "cd zovo-dashboard && npm install && npm run build",
+"outputDirectory": "zovo-dashboard/dist"
 }
