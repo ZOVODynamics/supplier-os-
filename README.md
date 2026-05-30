@@ -1,183 +1,76 @@
 # ZOVO Supplier OS
 
-Production-ready Supplier Marketplace backend for ZOVO. The project has been rebuilt as a
-Termux-safe Node.js 20+ monorepo with a clean TypeScript Express API, zero native modules, and
-JSON-file persistence.
+Investor-demo ready MVP for an AI-powered supplier marketplace. ZOVO lets buyers create sourcing
+projects, suppliers publish profiles, and the AI matching engine ranks suppliers by fit.
 
-## Hard Constraints Met
-
-- Node.js 20+ compatible
-- Runs in Linux and Android Termux ARM64 environments
-- No Prisma
-- No native modules, `node-gyp`, SQLite bindings, or compiled database binaries
-- Pure JavaScript/TypeScript runtime dependencies
-- Manual build-and-run workflow with no watcher or auto-restart scripts
-
-## Folder Structure
+## Architecture
 
 ```text
 ZOVO/
-|-- apps/
-|   `-- api/
-|       |-- src/
-|       |   |-- server.ts
-|       |   |-- app.ts
-|       |   |-- routes/
-|       |   |-- controllers/
-|       |   |-- services/
-|       |   |-- ai/
-|       |   |-- db/
-|       |   |-- types/
-|       |   |-- middleware/
-|       |   `-- utils/
-|       |-- db.json
-|       |-- package.json
-|       `-- tsconfig.json
-|-- package.json
-|-- tsconfig.json
-`-- README.md
+|-- app/                    # Next.js dashboard UI
+|   |-- login/
+|   |-- register/
+|   |-- dashboard/
+|   |-- projects/
+|   |-- suppliers/
+|   `-- match/[projectId]/
+|-- pages/api/              # Vercel serverless API routes
+|   |-- auth/
+|   |-- projects/
+|   |-- suppliers/
+|   `-- ai/match/
+|-- lib/                    # DB, auth, validation, AI engine
+|-- data/db.json            # JSON database seed
+|-- vercel.json
+|-- deploy.sh
+|-- .env.example
+`-- package.json
 ```
 
-## Source Code Overview
+## Constraints Met
 
-- `apps/api/src/server.ts` starts the HTTP server on port `3001`.
-- `apps/api/src/app.ts` wires Express, CORS, JSON body parsing, routes, and error handling.
-- `apps/api/src/db/jsonDb.ts` provides zero-dependency JSON storage with:
-  - `read()`
-  - `write()`
-  - `insert()`
-  - `find()`
-  - `update()`
-- `apps/api/src/ai/supplierMatcher.ts` scores supplier matches using:
-  - rating: 40%
-  - category match: 30%
-  - budget compatibility: 30%
-- `apps/api/src/controllers` keeps request/response logic out of services and server startup.
-- `apps/api/src/services` owns application use cases and is ready for a future Postgres/Supabase
-  repository swap.
-- `apps/api/src/middleware/auth.ts` verifies JWT bearer tokens and enforces roles.
-- `apps/api/src/services/authService.ts` handles registration, login, bcrypt password hashing, and JWT generation.
+- Vercel serverless compatible via Next.js API routes.
+- No Prisma.
+- No SQLite or native database modules.
+- No `better-sqlite3`.
+- No `node-gyp` dependencies.
+- Uses pure JavaScript/TypeScript packages only.
+- JSON database wrapper supports `read()`, `write()`, `insert()`, `find()`, and `update()`.
 
-## Data Entities
+## Features
 
-The JSON database stores:
+### Authentication
 
-1. `User` with bcrypt password hash and role `BUYER` or `SUPPLIER`
-2. `Supplier`
-3. `Project`
-4. `Bid`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- JWT bearer token middleware.
+- Password hashing with `bcryptjs`.
+- Roles: `BUYER`, `SUPPLIER`.
 
-## Authentication
+Seed login:
 
-Set a strong JWT secret outside source control for production:
-
-```bash
-export JWT_SECRET=replace-with-a-long-random-secret
+```text
+email: amina@acme.example
+password: password123
+role: BUYER
 ```
 
-If `JWT_SECRET` is not set, the API uses a local development fallback so Termux can still run
-without extra setup. Production deployments should always set `JWT_SECRET`.
+### Core Entities
 
-Supported roles:
-
-- `BUYER`: can create projects and request AI supplier matches.
-- `SUPPLIER`: can create supplier profiles.
-
-Public auth endpoints:
-
-```http
-POST /auth/register
-POST /auth/login
-```
-
-Protected auth endpoint:
-
-```http
-GET /auth/me
-```
-
-Register payload:
-
-```json
-{
-  "name": "Amina Patel",
-  "email": "amina@acme.example",
-  "password": "password123",
-  "role": "BUYER",
-  "company": "Acme Manufacturing"
-}
-```
-
-Login payload:
-
-```json
-{
-  "email": "amina@acme.example",
-  "password": "password123"
-}
-```
-
-Use the returned token on protected routes:
-
-```http
-Authorization: Bearer <token>
-```
-
-A seeded demo buyer is available with `amina@acme.example` / `password123`.
-
-## API Endpoints
-
-### Health
-
-```http
-GET /health
-```
-
-### Projects
-
-```http
-GET /projects                 # authenticated
-POST /projects                # BUYER only
-```
-
-Example project payload:
-
-```json
-{
-  "title": "IoT sensor assembly",
-  "description": "Find a supplier for pilot production.",
-  "category": "electronics",
-  "budget": 45000
-}
-```
-
-### Suppliers
-
-```http
-GET /suppliers                # authenticated
-POST /suppliers               # SUPPLIER only
-```
-
-Example supplier payload:
-
-```json
-{
-  "name": "TechSource Components",
-  "categories": ["electronics", "iot", "components"],
-  "rating": 4.8,
-  "location": "Bengaluru, India",
-  "minBudget": 5000,
-  "maxBudget": 150000
-}
-```
+- `users`
+- `suppliers`
+- `projects`
+- `bids`
 
 ### AI Matching
 
-```http
-GET /ai/match/:projectId      # BUYER only
-```
+Supplier score:
 
-Output format:
+- Rating: 40%
+- Category match: 30%
+- Budget fit: 30%
+
+Output:
 
 ```json
 {
@@ -197,32 +90,76 @@ Output format:
 }
 ```
 
-## Install Commands
+## API Endpoints
 
-```bash
-npm install
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/projects
+POST /api/projects
+GET  /api/suppliers
+POST /api/suppliers
+GET  /api/ai/match/:projectId
 ```
 
-## Run Command
+Protected routes require:
 
-Build first, then start manually:
+```http
+Authorization: Bearer <token>
+```
+
+## Frontend Pages
+
+- `/login`
+- `/register`
+- `/dashboard`
+- `/projects`
+- `/suppliers`
+- `/match/[projectId]`
+
+The dashboard displays project pipeline, supplier count, and AI supplier rankings with score
+breakdowns.
+
+## Local Setup
+
+```bash
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+## Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-The API listens on `http://localhost:3001` by default. Override with `PORT=4000 npm start`.
+## Vercel Deployment
 
-## Termux Notes
+Set this environment variable in Vercel:
 
-Install Node.js 20+ in Termux, then run the same commands:
-
-```bash
-pkg install nodejs
-npm install
-npm run build
-npm start
+```text
+JWT_SECRET=replace-with-a-long-random-secret
 ```
 
-No Prisma generation, native database packages, compiled binaries, watch scripts, auto-restart loops, or native password modules are required.
+Deploy with:
+
+```bash
+npm run deploy
+```
+
+or directly:
+
+```bash
+vercel deploy
+```
+
+## JSON DB Note
+
+`data/db.json` is the seed database. On Vercel, API routes copy the seed to `/tmp/zovo-db.json`
+for runtime writes. This keeps the MVP serverless-compatible and dependency-free. For long-term
+production persistence, the `lib/db.ts` wrapper is the migration seam for Supabase/Postgres without
+changing controllers or UI flows.
