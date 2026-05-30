@@ -2,20 +2,13 @@
   "name": "zovo-supplier-os",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
-  },
-  "dependencies": {
-    "next": "14.2.15",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "typescript": "5.4.0",
-    "@types/node": "20.11.0",
-    "@types/react": "18.2.0",
-    "@types/react-dom": "18.2.0"
+    "build": "npm --workspace @zovo/api run build",
+    "start": "npm --workspace @zovo/api start",
+    "dev": "npm --workspace @zovo/api run dev",
+    "typecheck": "npm --workspace @zovo/api run typecheck"
   }
 }
