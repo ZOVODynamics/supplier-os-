@@ -8,7 +8,6 @@
   "scripts": {
     "build": "npm --workspace @zovo/api run build",
     "start": "npm --workspace @zovo/api start",
-    "dev": "npm --workspace @zovo/api run dev",
     "typecheck": "npm --workspace @zovo/api run typecheck"
   }
 }

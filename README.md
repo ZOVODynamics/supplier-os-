@@ -145,13 +145,7 @@ npm install
 
 ## Run Command
 
-Build and start the API with one command:
-
-```bash
-npm run dev
-```
-
-For production-style execution:
+Build first, then start manually:
 
 ```bash
 npm run build
@@ -167,7 +161,8 @@ Install Node.js 20+ in Termux, then run the same commands:
 ```bash
 pkg install nodejs
 npm install
-npm run dev
+npm run build
+npm start
 ```
 
-No Prisma generation, native database packages, or compiled binaries are required.
+No Prisma generation, native database packages, compiled binaries, watch scripts, or auto-restart loops are required.
