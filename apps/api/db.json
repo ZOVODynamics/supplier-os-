@@ -1,10 +1,11 @@
 {
   "users": [
     {
-      "id": "user_demo_company",
+      "id": "user_demo_buyer",
       "name": "Amina Patel",
       "email": "amina@acme.example",
-      "role": "buyer",
+      "passwordHash": "$2b$12$zW0ZdHCVPKm0P7J4.gQxI.vFc1FjK8nFiWF/dIKp4qYVzYILRJOfS",
+      "role": "BUYER",
       "company": "Acme Manufacturing",
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
@@ -14,7 +15,11 @@
     {
       "id": "supplier_techsource",
       "name": "TechSource Components",
-      "categories": ["electronics", "iot", "components"],
+      "categories": [
+        "electronics",
+        "iot",
+        "components"
+      ],
       "rating": 4.8,
       "location": "Bengaluru, India",
       "minBudget": 5000,
@@ -25,7 +30,11 @@
     {
       "id": "supplier_packpro",
       "name": "PackPro Logistics",
-      "categories": ["packaging", "logistics", "fulfillment"],
+      "categories": [
+        "packaging",
+        "logistics",
+        "fulfillment"
+      ],
       "rating": 4.4,
       "location": "Mumbai, India",
       "minBudget": 2000,
@@ -36,7 +45,11 @@
     {
       "id": "supplier_fabricworks",
       "name": "FabricWorks Global",
-      "categories": ["textiles", "apparel", "manufacturing"],
+      "categories": [
+        "textiles",
+        "apparel",
+        "manufacturing"
+      ],
       "rating": 4.6,
       "location": "Tiruppur, India",
       "minBudget": 10000,
@@ -53,7 +66,7 @@
       "category": "electronics",
       "budget": 45000,
       "status": "open",
-      "createdByUserId": "user_demo_company",
+      "createdByUserId": "user_demo_buyer",
       "createdAt": "2026-01-01T00:00:00.000Z",
       "updatedAt": "2026-01-01T00:00:00.000Z"
     }

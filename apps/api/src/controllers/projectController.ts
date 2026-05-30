@@ -3,12 +3,7 @@ import type { RequestHandler } from "express";
 import { projectService } from "../services/projectService";
 import type { CreateProjectInput } from "../types/requests";
 import { AppError } from "../utils/errors";
-import {
-  expectNumber,
-  expectRecord,
-  expectString,
-  optionalString
-} from "../utils/validation";
+import { expectNumber, expectRecord, expectString } from "../utils/validation";
 
 export const listProjects: RequestHandler = async (_request, response) => {
   const projects = await projectService.listProjects();
@@ -23,12 +18,16 @@ export const createProject: RequestHandler = async (request, response) => {
     throw new AppError(400, "budget must be greater than 0");
   }
 
+  if (!request.user) {
+    throw new AppError(401, "Authentication required");
+  }
+
   const input: CreateProjectInput = {
     title: expectString(body, "title"),
     description: expectString(body, "description"),
     category: expectString(body, "category"),
     budget,
-    createdByUserId: optionalString(body, "createdByUserId")
+    createdByUserId: request.user.userId
   };
 
   const project = await projectService.createProject(input);

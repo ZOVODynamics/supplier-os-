@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import { aiRouter } from "./ai";
+import { authRouter } from "./auth";
 import { projectRouter } from "./projects";
 import { supplierRouter } from "./suppliers";
 
@@ -13,6 +14,7 @@ router.get("/health", (_request, response) => {
   });
 });
 
+router.use("/auth", authRouter);
 router.use("/projects", projectRouter);
 router.use("/suppliers", supplierRouter);
 router.use("/ai", aiRouter);

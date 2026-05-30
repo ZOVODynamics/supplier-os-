@@ -1,4 +1,17 @@
-import type { ProjectStatus } from "./entities";
+import type { ProjectStatus, UserRole } from "./entities";
+
+export interface RegisterUserInput {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  company: string;
+}
+
+export interface LoginUserInput {
+  email: string;
+  password: string;
+}
 
 export interface CreateProjectInput {
   title: string;

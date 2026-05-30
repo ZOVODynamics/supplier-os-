@@ -11,7 +11,7 @@ JSON-file persistence.
 - No Prisma
 - No native modules, `node-gyp`, SQLite bindings, or compiled database binaries
 - Pure JavaScript/TypeScript runtime dependencies
-- Single-command build-and-run workflow
+- Manual build-and-run workflow with no watcher or auto-restart scripts
 
 ## Folder Structure
 
@@ -28,6 +28,7 @@ ZOVO/
 |       |   |-- ai/
 |       |   |-- db/
 |       |   |-- types/
+|       |   |-- middleware/
 |       |   `-- utils/
 |       |-- db.json
 |       |-- package.json
@@ -54,15 +55,75 @@ ZOVO/
 - `apps/api/src/controllers` keeps request/response logic out of services and server startup.
 - `apps/api/src/services` owns application use cases and is ready for a future Postgres/Supabase
   repository swap.
+- `apps/api/src/middleware/auth.ts` verifies JWT bearer tokens and enforces roles.
+- `apps/api/src/services/authService.ts` handles registration, login, bcrypt password hashing, and JWT generation.
 
 ## Data Entities
 
 The JSON database stores:
 
-1. `User`
+1. `User` with bcrypt password hash and role `BUYER` or `SUPPLIER`
 2. `Supplier`
 3. `Project`
 4. `Bid`
+
+## Authentication
+
+Set a strong JWT secret outside source control for production:
+
+```bash
+export JWT_SECRET=replace-with-a-long-random-secret
+```
+
+If `JWT_SECRET` is not set, the API uses a local development fallback so Termux can still run
+without extra setup. Production deployments should always set `JWT_SECRET`.
+
+Supported roles:
+
+- `BUYER`: can create projects and request AI supplier matches.
+- `SUPPLIER`: can create supplier profiles.
+
+Public auth endpoints:
+
+```http
+POST /auth/register
+POST /auth/login
+```
+
+Protected auth endpoint:
+
+```http
+GET /auth/me
+```
+
+Register payload:
+
+```json
+{
+  "name": "Amina Patel",
+  "email": "amina@acme.example",
+  "password": "password123",
+  "role": "BUYER",
+  "company": "Acme Manufacturing"
+}
+```
+
+Login payload:
+
+```json
+{
+  "email": "amina@acme.example",
+  "password": "password123"
+}
+```
+
+Use the returned token on protected routes:
+
+```http
+Authorization: Bearer <token>
+```
+
+A seeded demo buyer is available with `amina@acme.example` / `password123`.
 
 ## API Endpoints
 
@@ -75,8 +136,8 @@ GET /health
 ### Projects
 
 ```http
-GET /projects
-POST /projects
+GET /projects                 # authenticated
+POST /projects                # BUYER only
 ```
 
 Example project payload:
@@ -86,16 +147,15 @@ Example project payload:
   "title": "IoT sensor assembly",
   "description": "Find a supplier for pilot production.",
   "category": "electronics",
-  "budget": 45000,
-  "createdByUserId": "user_demo_company"
+  "budget": 45000
 }
 ```
 
 ### Suppliers
 
 ```http
-GET /suppliers
-POST /suppliers
+GET /suppliers                # authenticated
+POST /suppliers               # SUPPLIER only
 ```
 
 Example supplier payload:
@@ -114,7 +174,7 @@ Example supplier payload:
 ### AI Matching
 
 ```http
-GET /ai/match/:projectId
+GET /ai/match/:projectId      # BUYER only
 ```
 
 Output format:
@@ -165,4 +225,4 @@ npm run build
 npm start
 ```
 
-No Prisma generation, native database packages, compiled binaries, watch scripts, or auto-restart loops are required.
+No Prisma generation, native database packages, compiled binaries, watch scripts, auto-restart loops, or native password modules are required.

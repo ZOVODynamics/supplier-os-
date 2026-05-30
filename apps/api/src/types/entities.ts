@@ -1,4 +1,4 @@
-export type UserRole = "buyer" | "supplier" | "admin";
+export type UserRole = "BUYER" | "SUPPLIER";
 export type ProjectStatus = "open" | "matched" | "in_progress" | "completed" | "cancelled";
 export type BidStatus = "submitted" | "accepted" | "rejected";
 
@@ -11,6 +11,7 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   name: string;
   email: string;
+  passwordHash: string;
   role: UserRole;
   company: string;
 }
