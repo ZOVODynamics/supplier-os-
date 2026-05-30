@@ -2,11 +2,13 @@
 
 import type {
   AuthResponse,
+  Bid,
+  InvestorStats,
   Project,
   Supplier,
   SupplierMatchResult,
   UserRole
-} from "../../lib/types";
+} from "../lib/types";
 
 const tokenKey = "zovo_token";
 const userKey = "zovo_user";
@@ -63,16 +65,12 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
 }
 
 export function getToken(): string | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
   return window.localStorage.getItem(tokenKey);
 }
 
 export function getSessionUser(): SessionUser | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
+  if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem(userKey);
   return raw ? (JSON.parse(raw) as SessionUser) : null;
 }
@@ -104,6 +102,7 @@ export const zovoApi = {
       method: "POST",
       body: JSON.stringify(payload)
     }),
+  stats: () => apiRequest<InvestorStats>("/api/demo/stats"),
   projects: () => apiRequest<Project[]>("/api/projects"),
   createProject: (payload: CreateProjectPayload) =>
     apiRequest<Project>("/api/projects", {
@@ -113,6 +112,12 @@ export const zovoApi = {
   suppliers: () => apiRequest<Supplier[]>("/api/suppliers"),
   createSupplier: (payload: CreateSupplierPayload) =>
     apiRequest<Supplier>("/api/suppliers", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    }),
+  bids: () => apiRequest<Bid[]>("/api/bids"),
+  selectSupplier: (payload: { projectId: string; supplierId: string }) =>
+    apiRequest<Bid>("/api/bids", {
       method: "POST",
       body: JSON.stringify(payload)
     }),

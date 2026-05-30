@@ -1,13 +1,19 @@
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 
 import { ApiError } from "./errors";
+import { logger } from "./logger";
 
 export function apiHandler(handler: NextApiHandler): NextApiHandler {
   return async (request, response) => {
     try {
       await handler(request, response);
+      logger.info("api_request_completed", {
+        route: request.url,
+        method: request.method,
+        statusCode: response.statusCode
+      });
     } catch (error) {
-      sendError(response, error);
+      sendError(request, response, error);
     }
   };
 }
@@ -23,12 +29,21 @@ export function sendData<T>(response: NextApiResponse, data: T, statusCode = 200
   response.status(statusCode).json({ data });
 }
 
-function sendError(response: NextApiResponse, error: unknown): void {
+function sendError(request: NextApiRequest, response: NextApiResponse, error: unknown): void {
   if (error instanceof ApiError) {
+    logger.warn("api_request_rejected", {
+      route: request.url,
+      method: request.method,
+      statusCode: error.statusCode
+    });
     response.status(error.statusCode).json({ error: { message: error.message } });
     return;
   }
 
-  const message = error instanceof Error ? error.message : "Unexpected server error";
-  response.status(500).json({ error: { message } });
+  logger.error("api_request_failed", {
+    route: request.url,
+    method: request.method,
+    statusCode: 500
+  });
+  response.status(500).json({ error: { message: "Unexpected server error" } });
 }

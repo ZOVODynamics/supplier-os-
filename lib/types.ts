@@ -1,6 +1,7 @@
 export type UserRole = "BUYER" | "SUPPLIER";
 export type ProjectStatus = "open" | "matched" | "in_progress" | "completed" | "cancelled";
-export type BidStatus = "submitted" | "accepted" | "rejected";
+export type BidStatus = "selected" | "submitted" | "accepted" | "rejected";
+export type SystemStatus = "healthy" | "degraded";
 
 export interface BaseEntity {
   id: string;
@@ -75,10 +76,21 @@ export interface SupplierMatch {
   supplierId: string;
   name: string;
   score: number;
+  confidence: number;
+  explanation: string;
   breakdown: SupplierMatchBreakdown;
 }
 
 export interface SupplierMatchResult {
   projectId: string;
   matches: SupplierMatch[];
+}
+
+export interface InvestorStats {
+  totalUsers: number;
+  totalProjects: number;
+  totalSuppliers: number;
+  totalMatches: number;
+  selectedSuppliers: number;
+  systemStatus: SystemStatus;
 }

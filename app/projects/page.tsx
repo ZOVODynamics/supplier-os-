@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
-import { AppShell } from "../components/AppShell";
-import { zovoApi } from "../components/apiClient";
+import { AppShell } from "../../components/AppShell";
+import { StateMessage } from "../../components/StateMessage";
+import { zovoApi } from "../../services/clientApi";
 import type { Project } from "../../lib/types";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function load() {
-    setProjects(await zovoApi.projects());
+    setLoading(true);
+    try {
+      setProjects(await zovoApi.projects());
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -34,7 +41,7 @@ export default function ProjectsPage() {
         budget: Number(form.get("budget"))
       });
       event.currentTarget.reset();
-      setSuccess("Project created and ready for matching.");
+      setSuccess("Project created. Continue to AI matching or add more suppliers.");
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Failed to create project");
@@ -45,32 +52,41 @@ export default function ProjectsPage() {
     <AppShell>
       <div className="topbar">
         <div>
-          <span className="eyebrow">Buyer command center</span>
-          <h2>Projects</h2>
-          <p className="muted">Create sourcing requests and launch AI supplier matching.</p>
+          <span className="eyebrow">Demo step 2</span>
+          <h2>Create a sourcing project</h2>
+          <p className="muted">Capture the buyer need that will be scored against the supplier network.</p>
         </div>
+        <Link className="secondary-button" href="/suppliers">
+          Next: suppliers
+        </Link>
       </div>
 
       <section className="grid grid-2">
         <form className="card form-grid" onSubmit={submit}>
-          <h3>Create project</h3>
-          {error ? <div className="error">{error}</div> : null}
-          {success ? <div className="success">{success}</div> : null}
+          <h3>New project</h3>
+          {error ? <StateMessage type="error" title="Project error">{error}</StateMessage> : null}
+          {success ? <StateMessage type="success" title="Project ready">{success}</StateMessage> : null}
           <div className="field">
             <label htmlFor="title">Title</label>
-            <input id="title" name="title" className="input" required />
+            <input id="title" name="title" className="input" defaultValue="Smart packaging sourcing" required />
           </div>
           <div className="field">
             <label htmlFor="category">Category</label>
-            <input id="category" name="category" className="input" placeholder="electronics" required />
+            <input id="category" name="category" className="input" defaultValue="packaging" required />
           </div>
           <div className="field">
             <label htmlFor="budget">Budget</label>
-            <input id="budget" name="budget" className="input" type="number" min="1" required />
+            <input id="budget" name="budget" className="input" type="number" min="1" defaultValue="30000" required />
           </div>
           <div className="field">
             <label htmlFor="description">Description</label>
-            <textarea id="description" name="description" className="textarea" required />
+            <textarea
+              id="description"
+              name="description"
+              className="textarea"
+              defaultValue="Find a reliable supplier for launch-ready retail packaging and fulfillment support."
+              required
+            />
           </div>
           <button className="button" type="submit">
             Create project
@@ -80,6 +96,10 @@ export default function ProjectsPage() {
         <div className="card">
           <h3>Project pipeline</h3>
           <div className="list">
+            {loading ? <StateMessage type="loading" title="Loading projects" /> : null}
+            {!loading && projects.length === 0 ? (
+              <StateMessage type="empty" title="No projects yet">Create a buyer project to unlock matching.</StateMessage>
+            ) : null}
             {projects.map((project) => (
               <div className="list-item" key={project.id}>
                 <div>

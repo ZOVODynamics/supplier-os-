@@ -391,3 +391,151 @@ h3 {
     padding: 20px;
   }
 }
+
+.logo {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.logo-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #03111f;
+  background: linear-gradient(135deg, #67e8f9, #22c55e);
+  border-radius: 12px;
+  font-weight: 950;
+}
+
+.nav a.active {
+  color: #03111f;
+  background: linear-gradient(135deg, #67e8f9, #38bdf8);
+  border-color: transparent;
+}
+
+.sidebar-card,
+.demo-steps,
+.state-card {
+  background: rgba(15, 23, 42, 0.58);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.sidebar-card {
+  margin-top: 28px;
+}
+
+.sidebar-card h3 {
+  margin-top: 14px;
+}
+
+.demo-steps {
+  margin-top: 14px;
+}
+
+.demo-steps span {
+  color: #bae6fd;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demo-steps ol {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.state-card {
+  color: #dbeafe;
+  margin-bottom: 12px;
+}
+
+.state-card strong,
+.error strong,
+.success strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.match-card {
+  display: grid;
+  gap: 16px;
+}
+
+.selected-card {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow: 0 24px 80px rgba(34, 197, 94, 0.12);
+}
+
+.score-stack {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.confidence {
+  color: #bbf7d0;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.score-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.score-row {
+  display: grid;
+  gap: 8px;
+}
+
+.score-row-label {
+  display: flex;
+  justify-content: space-between;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.score-track {
+  height: 10px;
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+}
+
+.score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #22c55e);
+  border-radius: inherit;
+}
+
+@media (max-width: 1100px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+}

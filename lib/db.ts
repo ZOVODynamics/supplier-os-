@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 import type { CollectionName, DatabaseSchema, EntityForCollection } from "./types";
+import { logger } from "./logger";
 
 type StoredEntity = { id: string; createdAt: string; updatedAt: string };
 type InsertInput<T extends StoredEntity> = Omit<T, "id" | "createdAt" | "updatedAt">;
@@ -20,11 +21,17 @@ const emptyDatabase: DatabaseSchema = {
 
 class JsonDb {
   private writeQueue: Promise<void> = Promise.resolve();
+  private cached: DatabaseSchema | null = null;
 
   public async read(): Promise<DatabaseSchema> {
     await this.ensureWritableDatabase();
-    const raw = await fs.readFile(writablePath, "utf8");
-    return this.normalize(JSON.parse(raw) as Partial<DatabaseSchema>);
+
+    if (!this.cached) {
+      const raw = await fs.readFile(writablePath, "utf8");
+      this.cached = this.normalize(JSON.parse(raw) as Partial<DatabaseSchema>);
+    }
+
+    return this.clone(this.cached);
   }
 
   public async write(data: DatabaseSchema): Promise<void> {
@@ -34,6 +41,7 @@ class JsonDb {
     this.writeQueue = this.writeQueue.then(async () => {
       await fs.mkdir(path.dirname(writablePath), { recursive: true });
       await fs.writeFile(writablePath, serialized, "utf8");
+      this.cached = normalized;
     });
 
     return this.writeQueue;
@@ -104,6 +112,8 @@ class JsonDb {
       const seed = await this.readSeed();
       await fs.mkdir(path.dirname(writablePath), { recursive: true });
       await fs.writeFile(writablePath, `${JSON.stringify(seed, null, 2)}\n`, "utf8");
+      this.cached = seed;
+      logger.info("Initialized JSON database", { path: process.env.VERCEL ? "/tmp/zovo-db.json" : "data/db.json" });
     }
   }
 
@@ -123,6 +133,10 @@ class JsonDb {
       projects: Array.isArray(data.projects) ? data.projects : [],
       bids: Array.isArray(data.bids) ? data.bids : []
     };
+  }
+
+  private clone(data: DatabaseSchema): DatabaseSchema {
+    return JSON.parse(JSON.stringify(data)) as DatabaseSchema;
   }
 }
 

@@ -7,19 +7,22 @@ projects, suppliers publish profiles, and the AI matching engine ranks suppliers
 
 ```text
 ZOVO/
-|-- app/                    # Next.js dashboard UI
+|-- app/                    # Next.js dashboard routes
 |   |-- login/
 |   |-- register/
 |   |-- dashboard/
 |   |-- projects/
 |   |-- suppliers/
 |   `-- match/[projectId]/
+|-- components/             # Reusable SaaS UI components
+|-- services/               # Business logic + browser API client
+|-- middleware/             # Auth and role enforcement
 |-- pages/api/              # Vercel serverless API routes
 |   |-- auth/
 |   |-- projects/
 |   |-- suppliers/
 |   `-- ai/match/
-|-- lib/                    # DB, auth, validation, AI engine
+|-- lib/                    # Core DB, auth token, validation, logging, AI engine
 |-- data/db.json            # JSON database seed
 |-- vercel.json
 |-- deploy.sh
@@ -80,6 +83,8 @@ Output:
       "supplierId": "supplier_techsource",
       "name": "TechSource Components",
       "score": 98.4,
+      "confidence": 98.67,
+      "explanation": "TechSource Components directly matches the electronics category, fits the $45,000 budget range, has a 4.8/5 supplier rating. Overall score 98.4 with 98.67% confidence.",
       "breakdown": {
         "rating": 96,
         "categoryMatch": 100,
@@ -100,6 +105,9 @@ POST /api/projects
 GET  /api/suppliers
 POST /api/suppliers
 GET  /api/ai/match/:projectId
+GET  /api/bids
+POST /api/bids
+GET  /api/demo/stats
 ```
 
 Protected routes require:
@@ -117,8 +125,7 @@ Authorization: Bearer <token>
 - `/suppliers`
 - `/match/[projectId]`
 
-The dashboard displays project pipeline, supplier count, and AI supplier rankings with score
-breakdowns.
+The dashboard displays investor KPIs, project pipeline, supplier count, system status, and AI supplier rankings with score bars, confidence, explanations, and supplier selection.
 
 ## Local Setup
 
@@ -156,6 +163,15 @@ or directly:
 ```bash
 vercel deploy
 ```
+
+## Investor Demo Flow
+
+1. Register or login with the seeded buyer.
+2. Create a project on `/projects`.
+3. Add supplier profiles on `/suppliers`.
+4. Open `/match/[projectId]` from the project pipeline.
+5. Review ranked AI results with confidence and explanations.
+6. Select a supplier to complete the sourcing story.
 
 ## JSON DB Note
 

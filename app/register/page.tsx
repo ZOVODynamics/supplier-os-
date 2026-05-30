@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
-import { saveSession, zovoApi } from "../components/apiClient";
+import { saveSession, zovoApi } from "../../services/clientApi";
 import type { UserRole } from "../../lib/types";
 
 export default function RegisterPage() {

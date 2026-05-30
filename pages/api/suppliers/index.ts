@@ -1,40 +1,35 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { allowMethods, apiHandler, sendData } from "../../../lib/api";
-import { getAuthUser, requireRole } from "../../../lib/auth";
-import { db } from "../../../lib/db";
 import { ApiError } from "../../../lib/errors";
 import { expectNumber, expectRecord, expectString, expectStringArray } from "../../../lib/validation";
+import { getAuthUser, requireRole } from "../../../middleware/auth";
+import { createSupplier, listSuppliers } from "../../../services/supplierService";
 
 export default apiHandler(async (request: NextApiRequest, response: NextApiResponse) => {
   allowMethods(request, response, ["GET", "POST"]);
 
   if (request.method === "GET") {
     await getAuthUser(request);
-    const suppliers = await db.find("suppliers");
-    sendData(response, suppliers);
+    sendData(response, await listSuppliers());
     return;
   }
 
-  await requireRole(request, "SUPPLIER");
+  await requireRole(request, "BUYER", "SUPPLIER");
   const body = expectRecord(request.body);
-  const rating = expectNumber(body, "rating");
-  const minBudget = expectNumber(body, "minBudget");
-  const maxBudget = expectNumber(body, "maxBudget");
+  const rating = expectNumber(body, "rating", { min: 0, max: 5 });
+  const minBudget = expectNumber(body, "minBudget", { min: 0, max: 1_000_000_000 });
+  const maxBudget = expectNumber(body, "maxBudget", { min: 1, max: 1_000_000_000 });
 
-  if (rating < 0 || rating > 5) {
-    throw new ApiError(400, "rating must be between 0 and 5");
+  if (minBudget > maxBudget) {
+    throw new ApiError(400, "budget range must satisfy minBudget <= maxBudget");
   }
 
-  if (minBudget < 0 || maxBudget <= 0 || minBudget > maxBudget) {
-    throw new ApiError(400, "budget range must satisfy 0 <= minBudget <= maxBudget");
-  }
-
-  const supplier = await db.insert("suppliers", {
-    name: expectString(body, "name"),
-    categories: expectStringArray(body, "categories").map((category) => category.toLowerCase()),
+  const supplier = await createSupplier({
+    name: expectString(body, "name", { max: 160 }),
+    categories: expectStringArray(body, "categories", { maxItems: 12, maxLength: 80 }),
     rating,
-    location: expectString(body, "location"),
+    location: expectString(body, "location", { max: 140 }),
     minBudget,
     maxBudget
   });
