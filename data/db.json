@@ -1,0 +1,86 @@
+{
+  "users": [
+    {
+      "id": "user_demo_buyer",
+      "name": "Amina Patel",
+      "email": "amina@acme.example",
+      "passwordHash": "$2b$12$IxHidlp17QWaYmv8yQ7X4uR67rwT6qRuzPZ55prvyt5PnrHnl52uK",
+      "role": "BUYER",
+      "company": "Acme Manufacturing",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "suppliers": [
+    {
+      "id": "supplier_techsource",
+      "name": "TechSource Components",
+      "categories": [
+        "electronics",
+        "iot",
+        "components"
+      ],
+      "rating": 4.8,
+      "location": "Bengaluru, India",
+      "minBudget": 5000,
+      "maxBudget": 150000,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "supplier_packpro",
+      "name": "PackPro Logistics",
+      "categories": [
+        "packaging",
+        "logistics",
+        "fulfillment"
+      ],
+      "rating": 4.4,
+      "location": "Mumbai, India",
+      "minBudget": 2000,
+      "maxBudget": 80000,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "supplier_fabricworks",
+      "name": "FabricWorks Global",
+      "categories": [
+        "textiles",
+        "apparel",
+        "manufacturing"
+      ],
+      "rating": 4.6,
+      "location": "Tiruppur, India",
+      "minBudget": 10000,
+      "maxBudget": 250000,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "project_iot_sensors",
+      "title": "IoT sensor assembly",
+      "description": "Source a reliable supplier for pilot production of connected sensor devices.",
+      "category": "electronics",
+      "budget": 45000,
+      "status": "open",
+      "createdByUserId": "user_demo_buyer",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "project_packaging_launch",
+      "title": "Retail packaging launch",
+      "description": "Find packaging and fulfillment support for a new retail launch.",
+      "category": "packaging",
+      "budget": 30000,
+      "status": "open",
+      "createdByUserId": "user_demo_buyer",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "bids": []
+}

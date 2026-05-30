@@ -1,129 +1,181 @@
 # ZOVO Supplier OS
 
-AI-powered B2B supplier execution platform where companies post supply requests, suppliers respond with offers, and AI helps match requests to the best suppliers.
+Investor-demo ready MVP for an AI-powered supplier marketplace. ZOVO lets buyers create sourcing
+projects, suppliers publish profiles, and the AI matching engine ranks suppliers by fit.
 
-## Tech Stack
+## Architecture
 
-- **Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Database**: Prisma ORM with SQLite (easily migrates to PostgreSQL)
-- **Auth**: NextAuth.js v5 with credentials provider
-- **UI**: Custom components with dark/light mode support
+```text
+ZOVO/
+|-- app/                    # Next.js dashboard routes
+|   |-- login/
+|   |-- register/
+|   |-- dashboard/
+|   |-- projects/
+|   |-- suppliers/
+|   `-- match/[projectId]/
+|-- components/             # Reusable SaaS UI components
+|-- services/               # Business logic + browser API client
+|-- middleware/             # Auth and role enforcement
+|-- pages/api/              # Vercel serverless API routes
+|   |-- auth/
+|   |-- projects/
+|   |-- suppliers/
+|   `-- ai/match/
+|-- lib/                    # Core DB, auth token, validation, logging, AI engine
+|-- data/db.json            # JSON database seed
+|-- vercel.json
+|-- deploy.sh
+|-- .env.example
+`-- package.json
+```
+
+## Constraints Met
+
+- Vercel serverless compatible via Next.js API routes.
+- No Prisma.
+- No SQLite or native database modules.
+- No `better-sqlite3`.
+- No `node-gyp` dependencies.
+- Uses pure JavaScript/TypeScript packages only.
+- JSON database wrapper supports `read()`, `write()`, `insert()`, `find()`, and `update()`.
 
 ## Features
 
-- **Authentication**: Email/password login with role-based access (company, supplier, admin)
-- **Dashboard**: Modern SaaS-style dashboard with sidebar navigation
-- **Request System**: Create, track, and manage supply requests with status workflow
-- **Supplier Marketplace**: Browse suppliers, view profiles, and respond to requests
-- **AI Matching**: Intelligent keyword-based matching algorithm that scores suppliers
+### Authentication
 
-## Getting Started
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- JWT bearer token middleware.
+- Password hashing with `bcryptjs`.
+- Roles: `BUYER`, `SUPPLIER`.
 
-### Prerequisites
+Seed login:
 
-- Node.js 18+
-- npm, yarn, or pnpm
+```text
+email: amina@acme.example
+password: password123
+role: BUYER
+```
 
-### Installation
+### Core Entities
+
+- `users`
+- `suppliers`
+- `projects`
+- `bids`
+
+### AI Matching
+
+Supplier score:
+
+- Rating: 40%
+- Category match: 30%
+- Budget fit: 30%
+
+Output:
+
+```json
+{
+  "projectId": "project_iot_sensors",
+  "matches": [
+    {
+      "supplierId": "supplier_techsource",
+      "name": "TechSource Components",
+      "score": 98.4,
+      "confidence": 98.67,
+      "explanation": "TechSource Components directly matches the electronics category, fits the $45,000 budget range, has a 4.8/5 supplier rating. Overall score 98.4 with 98.67% confidence.",
+      "breakdown": {
+        "rating": 96,
+        "categoryMatch": 100,
+        "budgetFit": 100
+      }
+    }
+  ]
+}
+```
+
+## API Endpoints
+
+```http
+POST /api/auth/register
+POST /api/auth/login
+GET  /api/projects
+POST /api/projects
+GET  /api/suppliers
+POST /api/suppliers
+GET  /api/ai/match/:projectId
+GET  /api/bids
+POST /api/bids
+GET  /api/demo/stats
+```
+
+Protected routes require:
+
+```http
+Authorization: Bearer <token>
+```
+
+## Frontend Pages
+
+- `/login`
+- `/register`
+- `/dashboard`
+- `/projects`
+- `/suppliers`
+- `/match/[projectId]`
+
+The dashboard displays investor KPIs, project pipeline, supplier count, system status, and AI supplier rankings with score bars, confidence, explanations, and supplier selection.
+
+## Local Setup
 
 ```bash
-# Install dependencies
+cp .env.example .env.local
 npm install
-
-# Generate Prisma client and push schema
-npx prisma generate
-npx prisma db push
-
-# Seed the database with demo data
-npx tsx prisma/seed.ts
-
-# Start the development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open `http://localhost:3000`.
 
-### Demo Accounts
+## Production Build
 
-After seeding, you can log in with these accounts:
-
-| Email | Password | Role |
-|-------|----------|------|
-| admin@zovo.io | password123 | Admin |
-| company@acme.com | password123 | Company |
-| supplier@techsupply.com | password123 | Supplier |
-
-## Project Structure
-
-```
-├── app/
-│   ├── api/                 # API routes
-│   │   ├── auth/            # NextAuth endpoints
-│   │   ├── requests/        # Request CRUD
-│   │   ├── suppliers/       # Supplier endpoints
-│   │   └── matching/        # AI matching API
-│   ├── dashboard/           # Protected dashboard pages
-│   │   ├── requests/        # Request management
-│   │   ├── suppliers/       # Supplier marketplace
-│   │   ├── matching/        # AI matching panel
-│   │   └── settings/        # User settings
-│   ├── login/               # Login page
-│   ├── register/            # Registration page
-│   └── page.tsx             # Landing page
-├── components/
-│   ├── auth/                # Auth components
-│   ├── dashboard/           # Dashboard UI components
-│   ├── requests/            # Request-related components
-│   └── matching/            # AI matching components
-├── lib/
-│   ├── auth.ts              # NextAuth configuration
-│   ├── prisma.ts            # Prisma client
-│   ├── ai-matching.ts       # AI matching algorithm
-│   └── utils.ts             # Utility functions
-├── prisma/
-│   ├── schema.prisma        # Database schema
-│   └── seed.ts              # Seed data
-└── types/
-    └── next-auth.d.ts       # Auth type extensions
+```bash
+npm run build
+npm start
 ```
 
-## Database Models
+## Vercel Deployment
 
-- **User**: id, name, email, password, role, company
-- **Request**: id, title, description, status, budget, category, priority, deadline
-- **Supplier**: id, name, description, skills, rating, location, certifications
-- **Match**: requestId, supplierId, score, status, notes
+Set this environment variable in Vercel:
 
-## Request Status Flow
-
-```
-OPEN → MATCHED → IN_PROGRESS → COMPLETED
-                     ↓
-                  CANCELLED
+```text
+JWT_SECRET=replace-with-a-long-random-secret
 ```
 
-## Migrating to PostgreSQL
+Deploy with:
 
-1. Update `prisma/schema.prisma`:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
+```bash
+npm run deploy
+```
 
-2. Update `.env`:
-   ```
-   DATABASE_URL="postgresql://user:password@localhost:5432/zovo_supplier_os"
-   ```
+or directly:
 
-3. Run migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
+```bash
+vercel deploy
+```
 
-## License
+## Investor Demo Flow
 
-MIT
+1. Register or login with the seeded buyer.
+2. Create a project on `/projects`.
+3. Add supplier profiles on `/suppliers`.
+4. Open `/match/[projectId]` from the project pipeline.
+5. Review ranked AI results with confidence and explanations.
+6. Select a supplier to complete the sourcing story.
+
+## JSON DB Note
+
+`data/db.json` is the seed database. On Vercel, API routes copy the seed to `/tmp/zovo-db.json`
+for runtime writes. This keeps the MVP serverless-compatible and dependency-free. For long-term
+production persistence, the `lib/db.ts` wrapper is the migration seam for Supabase/Postgres without
+changing controllers or UI flows.
